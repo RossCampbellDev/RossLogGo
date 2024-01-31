@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 
@@ -26,18 +25,15 @@ func init() {
 	if err := godotenv.Load(); err != nil {
 		panic(err)
 	}
-
-	MONGO_USER = os.Getenv("MONGO_USER")
-	MONGO_PASS = os.Getenv("MONGO_PASS")
 	MONGO_DB_NAME = os.Getenv("MONGO_DB_NAME")
-	MONGO_CONN_STRING = os.Getenv("MONGO_CONN_STRING")
-
-	MONGO_CONN_STRING = strings.Replace(MONGO_CONN_STRING, "<username>", MONGO_USER, 1)
-	MONGO_CONN_STRING = strings.Replace(MONGO_CONN_STRING, "<password>", MONGO_PASS, 1)
 }
 
 func GetMongoClient(ctx context.Context) *mongo.Client {
-	fmt.Printf("conn: %s\n\n", MONGO_CONN_STRING)
+	MONGO_USER := os.Getenv("MONGO_USER")
+	MONGO_PASS := os.Getenv("MONGO_PASS")
+	MONGO_CONN_STRING := os.Getenv("MONGO_CONN_STRING")
+	MONGO_CONN_STRING = strings.Replace(MONGO_CONN_STRING, "<username>", MONGO_USER, 1)
+	MONGO_CONN_STRING = strings.Replace(MONGO_CONN_STRING, "<password>", MONGO_PASS, 1)
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(MONGO_CONN_STRING).SetServerAPIOptions(serverAPI)
@@ -53,7 +49,6 @@ func GetMongoClient(ctx context.Context) *mongo.Client {
 	// 	panic(err)
 	// }
 
-	fmt.Println("Connected to Mongo Client")
 	return client
 }
 

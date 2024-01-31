@@ -1,15 +1,17 @@
 package types
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type Entry struct {
-	ID        string
-	Title     string
-	Body      string
-	Tags      []string
-	Datestamp string
+	ID        primitive.ObjectID `bson:"_id,omitempty"`
+	Title     string             `bson:"title"`
+	Body      string             `bson:"body"`
+	Tags      []string           `bson:"tags"`
+	Datestamp primitive.DateTime `bson:"datestamp"`
 }
 
 type User struct {
-	ID       string
-	Username string
-	Passhash string
+	ID       string `bson:"id,omitempty"`
+	Username string `bson:"username"`
+	Passhash string `bson:"passhash"`
 }
