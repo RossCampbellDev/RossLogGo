@@ -1,0 +1,16 @@
+### get all entries
+GET http://localhost:8080/logs
+
+### get entry by title
+GET http://localhost:8080/logs/test%202
+
+
+### insert entry
+POST http://localhost:8080/new
+Content-Type: application/json
+
+{
+	"title": "test 2",
+	"body": "here's some text",
+	"tags": [""]
+}

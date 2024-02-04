@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func GetAllEntries(coll *mongo.Collection, ctx context.Context) []types.Entry {
+func GetAllEntries(ctx context.Context, coll *mongo.Collection) []types.Entry {
 	var results []types.Entry
 
 	allEntries, err := coll.Find(ctx, bson.D{}) // context, filter, options (not included here)
@@ -32,7 +32,7 @@ func GetAllEntries(coll *mongo.Collection, ctx context.Context) []types.Entry {
 	return results
 }
 
-func GetEntryByTitle(title string, coll *mongo.Collection, ctx context.Context) []types.Entry {
+func GetEntryByTitle(ctx context.Context, coll *mongo.Collection, title string) []types.Entry {
 	title = fmt.Sprintf(".*%s.*", title)
 
 	var results []types.Entry
@@ -56,7 +56,7 @@ func GetEntryByTitle(title string, coll *mongo.Collection, ctx context.Context) 
 	return results
 }
 
-func InsertEntry(e types.Entry, coll *mongo.Collection, ctx context.Context) bool {
+func InsertEntry(ctx context.Context, coll *mongo.Collection, e types.Entry) bool {
 	result, err := coll.InsertOne(ctx, e)
 	if err != nil {
 		return false
