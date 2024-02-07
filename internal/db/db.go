@@ -31,9 +31,10 @@ func init() {
 }
 
 func GetMongoClient(ctx context.Context) (*mongo.Client, error) {
+	MONGO_CONN_STRING := os.Getenv("MONGO_CONN_STRING")
 	MONGO_USER := os.Getenv("MONGO_USER")
 	MONGO_PASS := os.Getenv("MONGO_PASS")
-	MONGO_CONN_STRING := os.Getenv("MONGO_CONN_STRING")
+	
 	MONGO_CONN_STRING = strings.Replace(MONGO_CONN_STRING, "<username>", MONGO_USER, 1)
 	MONGO_CONN_STRING = strings.Replace(MONGO_CONN_STRING, "<password>", MONGO_PASS, 1)
 
