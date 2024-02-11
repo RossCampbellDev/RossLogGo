@@ -10,13 +10,19 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func GetAllEntries(ctx context.Context, coll *mongo.Collection) []types.Entry {
-	var results []types.Entry
+func GetAllEntries(ctx context.Context, coll *mongo.Collection) ([]types.Entry, error) {
+	// var results []types.Entry
+	/*
+		create a slice of length zero, rather than a "nil slice
+		either way works, but this is more explicit.  with the above line, the empty slice
+		is initialised when we try to append anyway
+	*/
+	results := make([]types.Entry, 0)
 
 	allEntries, err := coll.Find(ctx, bson.D{}) // context, filter, options (not included here)
 
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("Error when searching DB for records: %w", err)
 	}
 	defer allEntries.Close(ctx)
 
@@ -24,23 +30,23 @@ func GetAllEntries(ctx context.Context, coll *mongo.Collection) []types.Entry {
 		var e types.Entry
 
 		if err := allEntries.Decode(&e); err != nil {
-			panic(err)
+			return nil, fmt.Errorf("Failed to decode records into Entry format: %w", err)
 		}
 		results = append(results, e)
 	}
 
-	return results
+	return results, nil
 }
 
-func GetEntryByTitle(ctx context.Context, coll *mongo.Collection, title string) []types.Entry {
+func GetEntriesByTitle(ctx context.Context, coll *mongo.Collection, title string) ([]types.Entry, error) {
 	title = fmt.Sprintf(".*%s.*", title)
 
-	var results []types.Entry
+	results := make([]types.Entry, 0)
 	var filter = bson.M{"title": bson.M{"$regex": title}}
 
 	allEntries, err := coll.Find(ctx, filter)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("Error when searching DB for records: %w", err)
 	}
 	defer allEntries.Close(ctx)
 
@@ -48,12 +54,12 @@ func GetEntryByTitle(ctx context.Context, coll *mongo.Collection, title string) 
 		var e types.Entry
 
 		if err := allEntries.Decode(&e); err != nil {
-			panic(err)
+			return nil, fmt.Errorf("Failed to decode records into Entry format: %w", err)
 		}
 		results = append(results, e)
 	}
 
-	return results
+	return results, nil
 }
 
 func InsertEntry(ctx context.Context, coll *mongo.Collection, e types.Entry) bool {

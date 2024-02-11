@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"context"
 	"os"
 	"strings"
@@ -20,18 +21,20 @@ var (
 	MONGO_CONN_STRING string
 )
 
-// dont use short declaration!!!! think of the scope
 func init() {
 	if err := godotenv.Load(); err != nil {
-		panic(err)
+		fmt.Println("Failed to load env vars... exiting")
+		panic(err)	
 	}
+	// dont use short declaration!!!! think of the scope
 	MONGO_DB_NAME = os.Getenv("MONGO_DB_NAME")
 }
 
-func GetMongoClient(ctx context.Context) *mongo.Client {
+func GetMongoClient(ctx context.Context) (*mongo.Client, error) {
+	MONGO_CONN_STRING := os.Getenv("MONGO_CONN_STRING")
 	MONGO_USER := os.Getenv("MONGO_USER")
 	MONGO_PASS := os.Getenv("MONGO_PASS")
-	MONGO_CONN_STRING := os.Getenv("MONGO_CONN_STRING")
+	
 	MONGO_CONN_STRING = strings.Replace(MONGO_CONN_STRING, "<username>", MONGO_USER, 1)
 	MONGO_CONN_STRING = strings.Replace(MONGO_CONN_STRING, "<password>", MONGO_PASS, 1)
 
@@ -41,7 +44,7 @@ func GetMongoClient(ctx context.Context) *mongo.Client {
 	client, err := mongo.Connect(ctx, opts)
 
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("failed to connect to client: %w", err)
 	}
 
 	// test db connection
@@ -49,7 +52,7 @@ func GetMongoClient(ctx context.Context) *mongo.Client {
 	// 	panic(err)
 	// }
 
-	return client
+	return client, nil
 }
 
 func GetEntryCollection(c *mongo.Client) *mongo.Collection {

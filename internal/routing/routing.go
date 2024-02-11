@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rcampbell-sec/RossLogGo/internal/api"
@@ -20,13 +21,18 @@ var (
 )
 
 func RunServer() {
-	client := db.GetMongoClient(ctx)
+	client, err := db.GetMongoClient(ctx)
+	if err != nil {
+		fmt.Println("Uh-oh!  Couldn't get a Mongo Connection going:\n", err)
+		os.Exit(0)
+	}
+
 	defer client.Disconnect(ctx)
 	entriesCollection = db.GetEntryCollection(client)
 
 	router := gin.Default()
 	router.GET("/logs", getAllEntries)
-	router.GET("/logs/:title", getEntryByTitle)
+	router.GET("/logs/:title", getEntriesByTitle)
 	router.POST("/new", insertEntry)
 
 	router.Run("localhost:8080")
@@ -34,7 +40,13 @@ func RunServer() {
 }
 
 func getAllEntries(c *gin.Context) {
-	entries := api.GetAllEntries(ctx, entriesCollection)
+	entries, err := api.GetAllEntries(ctx, entriesCollection)
+	
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "problem getting entries"})
+		return
+	}
+	
 	if len(entries) == 0 {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "no entries found"})
 		return
@@ -42,9 +54,15 @@ func getAllEntries(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, entries)
 }
 
-func getEntryByTitle(c *gin.Context) {
+func getEntriesByTitle(c *gin.Context) {
 	title := c.Param("title")
-	result := api.GetEntryByTitle(ctx, entriesCollection, title)
+	result, err := api.GetEntriesByTitle(ctx, entriesCollection, title)
+	
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "problem searching entries"})
+		return
+	}
+	
 	if len(result) == 0 {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "no matches for " + title})
 		return
@@ -55,7 +73,6 @@ func getEntryByTitle(c *gin.Context) {
 func insertEntry(c *gin.Context) {
 	var myEntry types.Entry
 	if err := c.Bind(&myEntry); err != nil {
-		fmt.Println(err)
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "could not bind entry"})
 		return
 	}
